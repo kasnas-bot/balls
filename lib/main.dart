@@ -11,9 +11,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: GameWidget(game: BallsGame()),
-      ),
+      home: Scaffold(body: GameWidget(game: BallsGame())),
     );
   }
 }
