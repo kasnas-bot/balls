@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.5
+          channel: stable
+          cache: true
+          pub-cache: true
+
+      - name: Resolve workspace dependencies
+        run: flutter pub get
+
+      - name: Import guard (shared_physics stays pure Dart)
+        run: |
+          if grep -rniE 'flutter|dart:ui|flame|forge2d' shared_physics/pubspec.yaml shared_physics/lib; then
+            echo "::error::shared_physics must not mention flutter, dart:ui, flame or forge2d (D-002)"
+            exit 1
+          fi
+          echo "Import guard passed"
+
+      - name: Root — format
+        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Root — analyze
+        run: flutter analyze
+      - name: Root — test
+        run: flutter test
+
+      - name: shared_physics — format
+        working-directory: shared_physics
+        run: dart format --output=none --set-exit-if-changed .
+      - name: shared_physics — analyze
+        working-directory: shared_physics
+        run: dart analyze --fatal-infos
+      - name: shared_physics — test
+        working-directory: shared_physics
+        run: dart test
+
+      - name: server — format
+        working-directory: server
+        run: dart format --output=none --set-exit-if-changed .
+      - name: server — analyze
+        working-directory: server
+        run: dart analyze --fatal-infos
+      - name: server — test
+        working-directory: server
+        run: dart test
