@@ -6,9 +6,16 @@ version: 0.1.0
 environment:
   sdk: ^3.10.4
 
+workspace:
+  - shared_physics
+  - server
+
 dependencies:
+  flame: ^1.35.1
   flutter:
     sdk: flutter
+  shared_physics:
+    path: shared_physics
 
 dev_dependencies:
   flutter_test:
